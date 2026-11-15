@@ -36,6 +36,10 @@ It is free, open source (MIT), and one command removes it again.
 
 ## Before you install
 
+- **Ask for a replacement first.** Ghosting as heavy as in the clip above may qualify for a warranty replacement.
+  If your tablet is under warranty and reMarkable or your seller will replace it, do that, and do it before you
+  turn on developer mode. GhostGuard changes how the panel is driven; it is a last resort for tablets that cannot
+  be replaced, for example out of warranty or bought where there is no official service.
 - It works on **software 3.29** of the reMarkable Paper Pro, the current release: **3.29.1** is the version it
   was developed and tested on, and 3.29.0 is accepted too (see [Supported software](#supported-software)).
   On any other version the installer refuses and the add-on stays passive. A tablet that updates itself to a
@@ -132,6 +136,13 @@ same way; without the `bwturn` extra it stays flash-free. The document toolbar a
 | Menus, pop-ups, typing, handwriting | – | unchanged, no added flash |
 
 ## FAQ
+
+### Should I ask reMarkable for a replacement first?
+
+Yes, if you can. Ghosting as heavy as in the clip at the top may be a fault that the warranty covers, and a
+replaced panel is better than a patched one. Ask before you turn on developer mode. GhostGuard is for when a
+replacement is not an option: the warranty has run out, or the tablet was bought through an importer in a
+country without official service, as was the case for the tablet this was developed on.
 
 ### Does it work on the reMarkable Paper Pro Move, the reMarkable 2 or the reMarkable 1?
 

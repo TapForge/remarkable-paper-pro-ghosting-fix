@@ -4,14 +4,16 @@ GhostGuard is the ghosting fix for the reMarkable Paper Pro described in the [RE
 assumes you have never opened a terminal. Take it one step at a time; the whole thing takes about 30 minutes,
 most of it waiting.
 
-**Before you start, check these three things.**
+**Before you start, check these four things.**
 
-1. Your tablet is a **reMarkable Paper Pro** (the 11.8" colour model; not the Paper Pro Move, not a reMarkable 2).
-2. Its software version is **3.29.1** (or 3.29.0). Look at *Settings → General → Software* (the version is
+1. The tablet cannot simply be replaced. Heavy ghosting may qualify for a warranty replacement; if yours is under
+   warranty, ask reMarkable or your seller first, before you turn on developer mode (README, "Before you install").
+2. Your tablet is a **reMarkable Paper Pro** (the 11.8" colour model; not the Paper Pro Move, not a reMarkable 2).
+3. Its software version is **3.29.1** (or 3.29.0). Look at *Settings → General → Software* (the version is
    shown there). On 3.29.0, update the tablet to 3.29.1 first if you can: 3.29.0 is accepted, but GhostGuard has
    not been run on a tablet with it. If it is any other version, stop here: the installer will refuse. See
    [TROUBLESHOOTING.md](TROUBLESHOOTING.md#other-firmware-versions).
-3. You have read the [Risks](../README.md#risks) section of the README and accept them.
+4. You have read the [Risks](../README.md#risks) section of the README and accept them.
 
 ## The steps at a glance
 
