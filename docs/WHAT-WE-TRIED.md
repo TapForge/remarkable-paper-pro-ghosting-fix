@@ -1,4 +1,4 @@
-# What we tried
+# What we tried against ghosting on the reMarkable Paper Pro
 
 This is the honest history of the fix, in order, including the approaches that did not work. The goal, in the words of the device owner (translated):
 

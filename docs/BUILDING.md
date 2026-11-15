@@ -1,4 +1,4 @@
-# Building from source, and porting
+# Building GhostGuard from source, and porting it
 
 You do not need this to use GhostGuard: a built engine is in `prebuilt/ggsense.so`.
 

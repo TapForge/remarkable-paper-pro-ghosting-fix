@@ -1,4 +1,4 @@
-# Settings
+# GhostGuard settings for the reMarkable Paper Pro
 
 GhostGuard works without any setting. This page is for people who want to try another page-turn behaviour.
 

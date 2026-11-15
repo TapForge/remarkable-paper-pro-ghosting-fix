@@ -1,10 +1,114 @@
-# GhostGuard for the reMarkable Paper Pro
+# reMarkable Paper Pro ghosting fix (GhostGuard)
 
-**Less ghosting and colour residue when you turn pages on a reMarkable Paper Pro.**
+**GhostGuard is a free, open-source ghosting fix for the reMarkable Paper Pro.** It changes how the tablet
+refreshes its colour e-ink screen when you turn a page, so that the new page arrives clean instead of carrying a
+faint copy of the page before it.
 
-On the Paper Pro, a faint copy of the previous page often stays visible after a page turn, and the white background of
-colour documents turns patchy (white next to yellowish or lilac). GhostGuard is a small add-on that changes how the
-tablet drives its screen during page turns, so that the new page arrives clean:
+[![Device: reMarkable Paper Pro](https://img.shields.io/badge/device-reMarkable%20Paper%20Pro-1f6feb)](#tested-on)
+[![Software: 3.29.1 only](https://img.shields.io/badge/software-3.29.1%20only-d29922)](#before-you-install)
+[![Engine: ggsense 1.8.32](https://img.shields.io/badge/engine-ggsense%201.8.32-8250df)](docs/HOW-IT-WORKS.md)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-2ea043)](LICENSE)
+
+<p align="center">
+  <img src="docs/media/remarkable-paper-pro-ghosting-before-after.gif" width="800"
+       alt="reMarkable Paper Pro ghosting before and after GhostGuard. Left, stock software: the previous pages stay on the screen as ghost images after every page turn. Right, with GhostGuard: one short full refresh per page turn, then a clean page.">
+</p>
+<p align="center"><sub>The same tablet, minutes apart, turning the pages of a colour PDF.
+<b>Left:</b> stock software 3.29.1 (GhostGuard had not started yet after a restart).
+<b>Right:</b> GhostGuard running: one short full refresh per page turn, then a clean page.</sub></p>
+
+**[Install](#install)** · [What it fixes](#what-it-fixes) · [FAQ](#faq) · [How it works](#how-it-works) ·
+[Risks](#risks) · [Uninstall](#uninstall)
+
+## What it fixes
+
+If your Paper Pro does any of this, GhostGuard is made for it:
+
+- **Ghosting after a page turn.** A faint copy of the previous page (a ghost image, an afterimage) stays visible
+  behind the new one, and it piles up from page to page.
+- **A patchy background on colour documents.** The white of the page comes out yellowish or lilac in places.
+- **Residue after leaving a screen.** Closing a document, opening Settings or closing the on-screen keyboard
+  leaves traces of what was there before.
+- **No quick way to clean the screen.** GhostGuard adds a **refresh button** to the document toolbar: one tap
+  redraws the whole screen.
+
+It is free, open source (MIT), and one command removes it again.
+
+## Before you install
+
+- It works on **exactly one software version**: reMarkable Paper Pro, software **3.29.1** (build `20261028104944`).
+  On any other version the installer refuses and the add-on stays passive. A tablet that updates itself goes back
+  to stock behaviour until this project is updated.
+- It was developed and tested on **one tablet**, judged by **one person's eyes**, installed from **one Mac**.
+  Your panel may behave differently.
+- It needs **developer mode**. Turning developer mode on **erases the tablet** (factory reset; your notes come back
+  from the cloud if you sync first), shows a warning at every start, and reMarkable says damage caused in
+  developer mode is not covered by the warranty.
+- It is not made or endorsed by reMarkable AS. You use it at your own risk. See [Risks](#risks).
+
+## Install
+
+| You need | Details |
+|---|---|
+| Tablet | reMarkable Paper Pro (the 11.8" colour model; not the Paper Pro Move, not a reMarkable 2) |
+| Software | exactly **3.29.1**; look at *Settings → General → Software* |
+| Developer mode | on (step 1; skip it if you already have it) |
+| Computer | macOS or Linux; on Windows use WSL |
+| Cable | the tablet's USB-C cable |
+| Time | about 30 minutes, most of it waiting |
+
+No programming needed: you paste one command and answer the installer's questions.
+
+1. **Sync your tablet**, then turn on developer mode:
+   *Settings → General → Paper Tablet → Software → Advanced → Developer mode*. The tablet erases itself and restarts.
+2. **Note the password** shown at *Settings → General → Help → About → Copyrights and licenses → General information*.
+3. **Connect the tablet** to the computer with the USB cable. Keep it awake and unlocked.
+4. **Download GhostGuard and run the installer.** Open a terminal and paste:
+
+   ```bash
+   git clone https://github.com/TapForge/remarkable-paper-pro-ghosting-fix.git \
+     && cd remarkable-paper-pro-ghosting-fix \
+     && bash install.sh
+   ```
+
+   The installer explains each of its six parts and asks `[y/N]` before it changes anything. It asks for the
+   password from step 2 once. No `git`?
+   [Download the ZIP](https://github.com/TapForge/remarkable-paper-pro-ghosting-fix/archive/refs/heads/main.zip),
+   unpack it, open a terminal in that folder and run `bash install.sh`.
+5. **Let it restart the tablet**, then leave the tablet awake and untouched for about four minutes. The screen
+   restarts once by itself; after that GhostGuard is running.
+6. **Check it:**
+
+   ```bash
+   bash status.sh
+   ```
+
+   The last line should say `RESULT: GhostGuard is running.`
+
+Every screen and every question of the installer is described in **[docs/INSTALL.md](docs/INSTALL.md)**. If a
+step stops, **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** has the fix.
+
+The installer adds the four [start-up extras](#start-up-extras) by default; `GG_EXTRAS=none bash install.sh`
+installs none.
+
+## Uninstall
+
+Connect the tablet, keep it awake, and in the project folder run:
+
+```bash
+bash uninstall.sh --now
+```
+
+The screen restarts once and the tablet is back to its stock behaviour, also after every later restart.
+
+## How do I know it works?
+
+Open a PDF with colour (a textbook, a magazine) and turn a few pages. Each turn away from a colour page is now one
+short full refresh, and the page behind it should be gone. With the default extras a black-and-white page turns the
+same way; without the `bwturn` extra it stays flash-free. The document toolbar also gets a refresh button (see
+[Start-up extras](#start-up-extras)). `bash status.sh` on the computer prints `RESULT: GhostGuard is running.`
+
+## What changes, screen by screen
 
 | Situation | Stock software | With GhostGuard |
 |---|---|---|
@@ -15,59 +119,70 @@ tablet drives its screen during page turns, so that the new page arrives clean:
 | On-screen keyboard | closing: a flash that leaves residue | opening: one clean in-place refresh about 0.5 s later, before the first key (extra `settingskb`); closing: one clean refresh after the screen has settled |
 | Menus, pop-ups, typing, handwriting | – | unchanged, no added flash |
 
-It is free, open source, and can be removed with one command.
+## FAQ
 
-> **Read this first**
->
-> - It works on **exactly one software version**: reMarkable Paper Pro, software **3.29.1** (build `20261028104944`).
->   On any other version the installer refuses and the add-on stays passive. A tablet that updates itself goes back
->   to stock behaviour until this project is updated.
-> - It was developed and tested on **one tablet**, judged by **one person's eyes**, installed from **one Mac**.
->   Your panel may behave differently.
-> - It needs **developer mode**. Turning developer mode on **erases the tablet** (factory reset; your notes come back
->   from the cloud if you sync first), shows a warning at every start, and reMarkable says damage caused in
->   developer mode is not covered by the warranty.
-> - It is not made or endorsed by reMarkable AS. You use it at your own risk. See [Risks](#risks).
+### Does it work on the reMarkable Paper Pro Move, the reMarkable 2 or the reMarkable 1?
 
-## Install in five steps
+No. GhostGuard is made for the reMarkable Paper Pro (11.8") only. The installer checks the tablet's software and
+refuses anything else.
 
-You need the tablet, its USB-C cable and a computer (macOS or Linux; on Windows use WSL). No programming needed;
-you copy and paste three commands. The full guide with every screen and every question is in
-**[docs/INSTALL.md](docs/INSTALL.md)**.
+### Which software version do I need?
 
-1. **Sync your tablet**, then turn on developer mode:
-   *Settings → General → Paper Tablet → Software → Advanced → Developer mode*. The tablet erases itself and restarts.
-2. **Note the password** shown at *Settings → General → Help → About → Copyrights and licenses → General information*.
-3. **Connect the tablet** to the computer with the USB cable. Keep it awake and unlocked.
-4. **Download this project and run the installer.** Open a terminal and paste:
+Exactly **3.29.1** (build `20261028104944`). GhostGuard reads private data structures of the tablet's main
+program, and their positions change with every version, so it is pinned to one build.
+[docs/BUILDING.md](docs/BUILDING.md) lists what a port to another version has to change.
 
-   ```bash
-   git clone https://github.com/TapForge/ghostguard-paper-pro.git
-   ```
+### What happens when the tablet updates its software?
 
-   ```bash
-   cd ghostguard-paper-pro
-   ```
+GhostGuard notices at the next start that the version is not the tested one and does not start; the tablet simply
+behaves like stock. To keep GhostGuard, turn off automatic updates (*Settings → General → Software*) and check
+this page for a newer build before you update.
 
-   ```bash
-   bash install.sh
-   ```
+### Do I need developer mode, and does it erase my tablet?
 
-   The installer explains each step and asks before it changes anything. It asks for the password from step 2 once.
-   It installs the four [start-up extras](#start-up-extras) by default; `GG_EXTRAS=none bash install.sh` installs none.
-5. **Let it restart the tablet**, then leave the tablet awake and untouched for about four minutes. The screen
-   restarts once by itself; after that GhostGuard is running. Check with `bash status.sh`.
+Yes to both. GhostGuard is installed over SSH, which only developer mode offers. Turning developer mode on is a
+factory reset: notes and documents that are synced to your reMarkable account come back afterwards, anything that
+is not synced is lost.
 
-To remove it: `bash uninstall.sh --now`.
+### Does every page turn flash now?
 
-## How do I know it works?
+A page turn becomes one full refresh of about a second; that refresh is what clears the old page. Menus, pop-ups,
+typing and handwriting get no added flash. Black-and-white pages can stay flash-free (install without the
+`bwturn` extra), and [docs/SETTINGS.md](docs/SETTINGS.md) has a flash-free mode for colour pages too, at the price
+of a patchy background.
 
-Open a PDF with colour (a textbook, a magazine) and turn a few pages. Each turn away from a colour page is now one
-short full refresh, and the page behind it should be gone. With the default extras a black-and-white page turns the same way; without the `bwturn` extra it stays flash-free.
-The document toolbar also gets a refresh button (see [Start-up extras](#start-up-extras)).
-`bash status.sh` on the computer prints `RESULT: GhostGuard is running.`
+### Can it damage my tablet?
 
-## What causes the ghosting?
+We have seen no damage on our tablet, and GhostGuard is built to fail safe: before every start it checks the
+firmware and its own files, it falls back to the stock software if anything fails, and it switches itself off
+after two bad starts. SSH over USB stays available, so it can always be removed. Still, it was tested on one
+tablet, it adds drive to the panel on every full refresh, and the long-term effect on the panel has not been
+measured. Please read [Risks](#risks) before you decide.
+
+### Does it change the tablet for good?
+
+No. The waveform change lives in the running program's memory only: nothing on disk and nothing in the display's
+own storage is modified, and a restart brings the original back. `bash uninstall.sh --now` switches GhostGuard
+off for good; [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#removing-every-trace) shows how to delete its
+files as well. Developer mode itself stays on until you leave it with reMarkable's recovery tool.
+
+### Why does the reMarkable Paper Pro ghost at all?
+
+Mostly because of how its colour panel is driven during a page turn: pixels that the software leaves alone are
+still pushed by the rest of the screen, and old text that turns white keeps a faint dark trace. The short version
+is in [How it works](#how-it-works), the measurements are in [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
+
+### Can I install it from Windows?
+
+Through WSL (the Ubuntu app), following the same guide. We have not tested that route ourselves.
+
+### Is this an official reMarkable fix?
+
+No. It is a community project, not made or endorsed by reMarkable AS.
+
+## How it works
+
+### What causes the ghosting
 
 Short version of what we measured ([docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) has the details and the numbers):
 
@@ -80,7 +195,7 @@ Short version of what we measured ([docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) 
 3. **A full refresh that changes the content does not erase the old content.** Pixels going from old text to white
    keep a faint dark trace. Only a refresh of a picture that is already on the screen cleans completely.
 
-## What GhostGuard does about it
+### What GhostGuard does about it
 
 - **Colour pages:** the turn is sent as one full refresh, and the tablet's waveform table (in memory only) gets a
   short "white tail": seven otherwise idle frames at −12 V on the 43 ink-to-white transitions. That pushes the
@@ -156,13 +271,14 @@ Please read these before you install.
 
 ## Everyday commands
 
-Run these on the computer, with the tablet connected by USB and awake.
+Run these on the computer, in the project folder, with the tablet connected by USB and awake.
 
 | Command | What it does |
 |---|---|
 | `bash status.sh` | Is GhostGuard running? |
 | `bash status.sh log` | Its start-up log |
 | `bash settings.sh KEY VALUE` | Change a setting until the next restart ([docs/SETTINGS.md](docs/SETTINGS.md)) |
+| `git pull`, then `bash install.sh` | Update to the newest version of this project (then let it restart the tablet) |
 | `bash uninstall.sh` | Remove it (effective after the next restart) |
 | `bash uninstall.sh --now` | Remove it and switch back to stock at once |
 
@@ -187,7 +303,7 @@ ghostguard/             the small QML part that runs inside the tablet's interfa
 deploy/                 the boot-time installer, guards, rescue and rollback scripts
 tools/                  helper programs (input watcher, table tool, command sender) and the start-up extras:
                         bwturn.js, ggrefresh.js, viewchange.js, settingskb.js (plus the clock and keyboard watcher)
-docs/                   the documents above
+docs/                   the documents above; docs/media/ holds the pictures of this page
 ```
 
 No reMarkable software, waveform file or other proprietary data is included.
@@ -209,6 +325,7 @@ The Paper Pro Move and the reMarkable 1 and 2 are **not** supported.
 - If it works or does not work on your tablet, please open an issue and say which software version you have,
   what kind of document you read, and what you see. Reports from a second device are worth a lot.
 - If you port it to another software version, [docs/BUILDING.md](docs/BUILDING.md) lists what is version-specific.
+- If it cleaned up your screen, a star helps other Paper Pro owners find it.
 
 ## Credits and licence
 

@@ -1,4 +1,4 @@
-# How it works
+# Why the reMarkable Paper Pro ghosts, and how GhostGuard fixes it
 
 This document explains what causes ghosting on the reMarkable Paper Pro, what we measured, and what the fix (ggsense 1.8.32) does. It also lists what we did not verify.
 

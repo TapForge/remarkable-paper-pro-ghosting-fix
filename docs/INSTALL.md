@@ -1,7 +1,8 @@
-# Installation guide
+# How to install GhostGuard on the reMarkable Paper Pro
 
-This guide assumes you have never opened a terminal. Take it one step at a time; the whole thing takes about
-30 minutes, most of it waiting.
+GhostGuard is the ghosting fix for the reMarkable Paper Pro described in the [README](../README.md). This guide
+assumes you have never opened a terminal. Take it one step at a time; the whole thing takes about 30 minutes,
+most of it waiting.
 
 **Before you start, check these three things.**
 
@@ -10,6 +11,18 @@ This guide assumes you have never opened a terminal. Take it one step at a time;
    If it is another version, stop here: the installer will refuse. See
    [TROUBLESHOOTING.md](TROUBLESHOOTING.md#other-firmware-versions).
 3. You have read the [Risks](../README.md#risks) section of the README and accept them.
+
+## The steps at a glance
+
+| Step | What you do | Roughly |
+|---|---|---|
+| [1](#step-1-turn-on-developer-mode) | Turn on developer mode (erases the tablet; skip it if it is already on) | 10-15 min, more with a large library |
+| [2](#step-2-find-the-tablets-password) | Find the tablet's password | 1 min |
+| [3](#step-3-connect-the-tablet) | Connect the tablet with the USB-C cable | 1 min |
+| [4](#step-4-download-ghostguard) | Download GhostGuard | 1 min |
+| [5](#step-5-run-the-installer) | Run the installer and answer its questions | 5-10 min |
+| [6](#step-6-wait-four-minutes) | Wait four minutes, then check | 5 min |
+| [7](#step-7-try-it) | Try it | – |
 
 ## What you need
 
@@ -67,31 +80,25 @@ Open a terminal:
 Copy the following line, paste it into the terminal and press `Enter`:
 
 ```bash
-git clone https://github.com/TapForge/ghostguard-paper-pro.git
+git clone https://github.com/TapForge/remarkable-paper-pro-ghosting-fix.git
 ```
 
 Then this one:
 
 ```bash
-cd ghostguard-paper-pro
+cd remarkable-paper-pro-ghosting-fix
 ```
 
-(No `git`? On the project's GitHub page click **Code → Download ZIP**, unpack it, and in the terminal type `cd `
-followed by a space, drag the unpacked folder into the terminal window, and press `Enter`.)
+(No `git`? Download the project as a
+[ZIP file](https://github.com/TapForge/remarkable-paper-pro-ghosting-fix/archive/refs/heads/main.zip), unpack it,
+and in the terminal type `cd ` followed by a space, drag the unpacked folder into the terminal window, and press
+`Enter`.)
 
 ## Step 5: Run the installer
 
 ```bash
 bash install.sh
 ```
-
-The installer also installs the four start-up extras (see the README, "Start-up extras"): a black-and-white page turn like the colour one, a refresh button, and cleaner view changes. To install only some of them, or none, set `GG_EXTRAS` for the run:
-
-```bash
-GG_EXTRAS="bwturn ggrefresh" bash install.sh
-```
-
-`GG_EXTRAS=none bash install.sh` installs none (then the behaviour is that of ggsense 1.8.30). The extras are `bwturn`, `ggrefresh`, `viewchange` and `settingskb`, always installed in this order. To change the set later, run `install.sh` again with another `GG_EXTRAS`, then restart the tablet.
 
 The installer works through six parts. It prints what it is about to do and asks `[y/N]` before each change; type
 `y` and press `Enter` to go on, or just `Enter` to stop.
@@ -108,6 +115,18 @@ The installer works through six parts. It prints what it is about to do and asks
 If any part stops with `STOPPED:`, nothing further is changed. Read the message, look it up in
 [TROUBLESHOOTING.md](TROUBLESHOOTING.md), fix it and run `bash install.sh` again; parts that are already done are
 skipped.
+
+**Optional: choosing the extras.** The installer also installs the four start-up extras (see the README,
+"Start-up extras"): a black-and-white page turn like the colour one, a refresh button, and cleaner view changes.
+You do not have to do anything to get them. To install only some of them, or none, set `GG_EXTRAS` for the run:
+
+```bash
+GG_EXTRAS="bwturn ggrefresh" bash install.sh
+```
+
+`GG_EXTRAS=none bash install.sh` installs none (then the behaviour is that of ggsense 1.8.30). The extras are
+`bwturn`, `ggrefresh`, `viewchange` and `settingskb`, always installed in this order. To change the set later,
+run `install.sh` again with another `GG_EXTRAS`, then restart the tablet.
 
 ## Step 6: Wait four minutes
 
@@ -131,7 +150,7 @@ After the restart:
 From now on this happens by itself after every start of the tablet: about three minutes after you last touched it,
 the interface restarts once and GhostGuard is on. Until then the tablet behaves like stock.
 
-You can unplug the cable. The computer is only needed again to check, change or remove GhostGuard.
+You can unplug the cable. The computer is only needed again to check, change, update or remove GhostGuard.
 
 ## Step 7: Try it
 
@@ -160,6 +179,21 @@ The command prints two more lines you can run to delete the leftover files.
 
 Developer mode itself stays on. Turning it off needs reMarkable's recovery procedure (see their documentation) and
 erases the tablet again.
+
+## Updating GhostGuard
+
+When this project has a newer version, connect the tablet, keep it awake, and in the project folder run:
+
+```bash
+git pull
+```
+
+```bash
+bash install.sh
+```
+
+Answer the installer's questions as before and let it restart the tablet, then wait as in step 6. (If you
+downloaded the ZIP file instead of using `git`, download it again and run `bash install.sh` in the new folder.)
 
 ## After a software update
 

@@ -1,4 +1,4 @@
-# Troubleshooting
+# Troubleshooting GhostGuard on the reMarkable Paper Pro
 
 All commands are run on the computer, in the project folder, with the tablet connected by USB, awake and unlocked.
 
