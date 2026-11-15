@@ -25,7 +25,7 @@ run the uninstall command.
 | `'…' is not installed on this computer` | A tool is missing. See "What you need" in [INSTALL.md](INSTALL.md). |
 | `could not log in to root@10.11.99.1` | Wrong password, or no connection. Check: cable plugged in (try another cable or port; some cables only charge), tablet awake and unlocked, developer mode on. The password is case-sensitive; type it exactly as shown on the tablet. |
 | `~/.ssh/config already has a 'remarkable' entry that does not work` | You (or another tool) set up an entry earlier. Open `~/.ssh/config` in a text editor and fix or delete the `Host remarkable` block, then run the installer again. |
-| `untested firmware` | Your tablet does not run software 3.29.1. See [Other firmware versions](#other-firmware-versions). |
+| `untested firmware` | Your tablet runs neither software 3.29.1 nor 3.29.0. See [Other firmware versions](#other-firmware-versions). |
 | `the downloaded XOVI file is not the expected one` | The download was incomplete or the release file changed. Try again; if it repeats, open an issue. Nothing was installed. |
 | `XOVI did not finish building its table` | Run `bash install.sh` again and follow XOVI's prompts: press Enter in the terminal when asked, and enter your passcode on the tablet if it asks. |
 | `the installer step failed` | Look at the end of `install.log` in the project folder. Common reason: the tablet fell asleep during the copy. Wake it and run the installer again. |
@@ -83,13 +83,18 @@ That is the trade this project makes on colour pages: one refresh of about a sec
 
 ## Other firmware versions
 
-GhostGuard finds things inside the tablet's main program by their exact position, which changes with every
-software version. That is why it is pinned to one build and refuses all others.
+GhostGuard finds things inside the tablet's main program by their exact position, which can change with every
+software version. That is why a version is checked before the installer accepts it, and why all others are refused.
 
-- **Newer or older software on a Paper Pro:** not supported by this release. Watch the project page for an update,
-  or see [BUILDING.md](BUILDING.md) if you want to port it yourself.
-- **The tablet updated itself and GhostGuard stopped:** expected. It stays off and harmless. Either wait for a new
-  release or remove it with `bash uninstall.sh`.
+- **3.29.1 and 3.29.0** are accepted (README, "Supported software"). 3.29.0 was checked by comparing its program
+  with that of 3.29.1, but it was not run on a tablet; updating to 3.29.1 is the tested way.
+- **3.28 and older:** not supported. The display code of 3.28 is different; older versions were not checked.
+  Update the tablet.
+- **Newer than 3.29.1:** not supported by this release. Watch the project page for an update, or see
+  [BUILDING.md](BUILDING.md#checking-another-build) if you want to check or port a version yourself.
+- **The tablet updated itself and GhostGuard stopped:** expected. It stays off and harmless. After an update from
+  3.29.0 to 3.29.1, run `bash install.sh` again. Otherwise wait for a new release or remove it with
+  `bash uninstall.sh`.
 
 ## The tablet asks for the password again / `ssh remarkable` does not work
 

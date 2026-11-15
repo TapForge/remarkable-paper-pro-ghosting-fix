@@ -7,7 +7,7 @@
 # It asks before every step that changes something. What it does, in order:
 #   1. checks the tools it needs on this computer
 #   2. finds the tablet (and, with your consent, sets up password-free SSH login for it)
-#   3. checks that the tablet runs exactly the firmware this build was made for (it refuses otherwise)
+#   3. checks that the tablet runs a firmware this release knows (3.29.1, or 3.29.0; it refuses any other)
 #   4. installs XOVI (the extension loader GhostGuard needs) when it is not there yet
 #   5. copies GhostGuard to the tablet and arms it for the next boot
 #   6. offers to restart the tablet
@@ -21,9 +21,12 @@
 #                                                      README, "Start-up extras")
 set -eu
 HERE=$(cd "$(dirname "$0")" && pwd)
-OS_TESTED=20261028104944
-OS_NAME="3.29.1"
-XO_MD5=50f86a58704d2b4c4eab20df75e093f3
+# The firmware builds this release knows, one per line:
+#   content of /etc/version, md5 of /usr/bin/xochitl, name, library built for that xochitl, run on a real tablet (1/0)
+# 3.29.0 has the same display code as 3.29.1 at the same addresses (docs/BUILDING.md, "Checking another build");
+# its library is the same source built for the other build-id.
+BUILDS="20261028104944 50f86a58704d2b4c4eab20df75e093f3 3.29.1 prebuilt/ggsense.so 1
+20261009073202 5a15f4ec3336ca4cef895cc1dcc7c287 3.29.0 prebuilt/ggsense-3.29.0.so 0"
 XOVI_URL=https://github.com/asivery/rm-xovi-extensions/releases/download/v19-23052026/xovi-aarch64.tar.gz
 XOVI_SHA256=32d64d1262ddc984e3235c7d0340a398fe6d5b3efa6a979865f5977b32630d27
 KEY=$HOME/.ssh/id_ed25519_remarkable
@@ -57,7 +60,7 @@ for t in ssh scp python3 file sed grep curl tar; do
     command -v "$t" > /dev/null 2>&1 || die "'$t' is not installed on this computer. See docs/INSTALL.md, 'What you need'."
 done
 command -v md5 > /dev/null 2>&1 || command -v md5sum > /dev/null 2>&1 || die "neither 'md5' nor 'md5sum' found"
-for f in prebuilt/ggsense.so tools/ggtool tools/clock14f.js ghostguard/ghostguard.qmd ghostguard/control.json \
+for f in prebuilt/ggsense.so prebuilt/ggsense-3.29.0.so tools/ggtool tools/clock14f.js ghostguard/ghostguard.qmd ghostguard/control.json \
          deploy/20-gglog.conf deploy/persist_install.sh tools/bwturn.js tools/ggrefresh.js tools/viewchange.js \
          tools/settingskb.js; do
     [ -f "$HERE/$f" ] || die "the file $f is missing: download the whole project again"
@@ -102,14 +105,29 @@ say "3/6 Firmware check"
 ver=$(r 'cat /etc/version' | head -n 1)
 xo=$(r 'md5sum /usr/bin/xochitl' | cut -d' ' -f1)
 echo "tablet firmware build: $ver"
-if [ "$ver" != "$OS_TESTED" ] || [ "$xo" != "$XO_MD5" ]; then
-    echo "This build of GhostGuard was made and tested ONLY for the reMarkable Paper Pro with software"
-    echo "$OS_NAME (build $OS_TESTED). Your tablet runs something else, so nothing was installed."
+OS_NAME=""; SO=""; RUN=""
+while read -r b_ver b_md5 b_name b_so b_run; do
+    if [ "$ver" = "$b_ver" ] && [ "$xo" = "$b_md5" ]; then OS_NAME=$b_name; SO=$b_so; RUN=$b_run; fi
+done <<EOF
+$BUILDS
+EOF
+if [ -z "$OS_NAME" ]; then
+    echo "This release of GhostGuard knows the reMarkable Paper Pro with software 3.29.1 (build 20261028104944)"
+    echo "and 3.29.0 (build 20261009073202). Your tablet runs something else, so nothing was installed."
     echo "GhostGuard reads private structures of the tablet's main program; on another version it would"
     echo "at best do nothing. See docs/TROUBLESHOOTING.md, 'Other firmware versions'."
     die "untested firmware"
 fi
-echo "ok: this is the tested firmware ($OS_NAME)"
+if [ "$RUN" = 1 ]; then
+    echo "ok: this is the tested firmware ($OS_NAME)"
+else
+    echo "Your tablet runs software $OS_NAME. Its display code is the same as in 3.29.1 (the two programs were"
+    echo "compared instruction by instruction), and this release has a library built for it. But GhostGuard has"
+    echo "NOT been run on a real tablet with $OS_NAME yet. The tested way is to update the tablet to 3.29.1 first"
+    echo "(Settings > General > Software) and to run this installer again."
+    ask "Go on with $OS_NAME anyway?" || die "stopped before installing anything. Update the tablet to 3.29.1 and run this again."
+    echo "ok: going on with $OS_NAME"
+fi
 
 say "4/6 XOVI (extension loader)"
 if r '[ -x /home/root/xovi/start ] && [ -f /home/root/xovi/xovi.so ] && [ -f /home/root/xovi/extensions.d/qt-resource-rebuilder.so ] && [ -s /home/root/xovi/exthome/qt-resource-rebuilder/hashtab ]'; then
@@ -152,7 +170,7 @@ if r '[ -s /home/root/ghostguard/control.json ]'; then
 else
     scp $B -q "$HERE/ghostguard/control.json" "$HOST:/home/root/ghostguard/control.json"
 fi
-GG_HOST="$HOST" bash "$HERE/deploy/persist_install.sh" --go --so "$HERE/prebuilt/ggsense.so" \
+GG_HOST="$HOST" bash "$HERE/deploy/persist_install.sh" --go --so "$HERE/$SO" --os "$ver" --xo-md5 "$xo" \
     --clock "$HERE/tools/clock14f.js" ${XARGS[@]+"${XARGS[@]}"} > "$HERE/install.log" 2>&1 || {
         tail -n 15 "$HERE/install.log"; die "the installer step failed; the full output is in install.log"; }
 grep -q '^== done' "$HERE/install.log" || { tail -n 15 "$HERE/install.log"; die "the installer step did not finish; see install.log"; }

@@ -5,7 +5,7 @@ refreshes its colour e-ink screen when you turn a page, so that the new page arr
 faint copy of the page before it.
 
 [![Device: reMarkable Paper Pro](https://img.shields.io/badge/device-reMarkable%20Paper%20Pro-1f6feb)](#tested-on)
-[![Software: 3.29.1 only](https://img.shields.io/badge/software-3.29.1%20only-d29922)](#before-you-install)
+[![Software: 3.29](https://img.shields.io/badge/software-3.29-d29922)](#supported-software)
 [![Engine: ggsense 1.8.32](https://img.shields.io/badge/engine-ggsense%201.8.32-8250df)](docs/HOW-IT-WORKS.md)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-2ea043)](LICENSE)
 
@@ -17,8 +17,8 @@ faint copy of the page before it.
 <b>Left:</b> stock software 3.29.1 (GhostGuard had not started yet after a restart).
 <b>Right:</b> GhostGuard running: one short full refresh per page turn, then a clean page.</sub></p>
 
-**[Install](#install)** · [What it fixes](#what-it-fixes) · [FAQ](#faq) · [How it works](#how-it-works) ·
-[Risks](#risks) · [Uninstall](#uninstall)
+**[Install](#install)** · [What it fixes](#what-it-fixes) · [Supported software](#supported-software) ·
+[FAQ](#faq) · [How it works](#how-it-works) · [Risks](#risks) · [Uninstall](#uninstall)
 
 ## What it fixes
 
@@ -36,9 +36,10 @@ It is free, open source (MIT), and one command removes it again.
 
 ## Before you install
 
-- It works on **exactly one software version**: reMarkable Paper Pro, software **3.29.1** (build `20261028104944`).
-  On any other version the installer refuses and the add-on stays passive. A tablet that updates itself goes back
-  to stock behaviour until this project is updated.
+- It works on **software 3.29** of the reMarkable Paper Pro, the current release: **3.29.1** is the version it
+  was developed and tested on, and 3.29.0 is accepted too (see [Supported software](#supported-software)).
+  On any other version the installer refuses and the add-on stays passive. A tablet that updates itself to a
+  newer version goes back to stock behaviour until this project is updated.
 - It was developed and tested on **one tablet**, judged by **one person's eyes**, installed from **one Mac**.
   Your panel may behave differently.
 - It needs **developer mode**. Turning developer mode on **erases the tablet** (factory reset; your notes come back
@@ -46,12 +47,23 @@ It is free, open source (MIT), and one command removes it again.
   developer mode is not covered by the warranty.
 - It is not made or endorsed by reMarkable AS. You use it at your own risk. See [Risks](#risks).
 
+## Supported software
+
+| Software | Status |
+|---|---|
+| **3.29.1** (build `20261028104944`) | Supported. Developed and tested on a real tablet. |
+| **3.29.0** (build `20261009073202`) | Accepted, but not yet run on a real tablet. Its display code is the same as in 3.29.1, at the same addresses: the two programs were compared instruction by instruction ([how](docs/BUILDING.md#checking-another-build)). The installer says so and asks before it goes on. Updating to 3.29.1 first is the tested way. |
+| 3.28 and older | Not supported. The display code of 3.28 is different; older versions were not checked. Update the tablet (*Settings → General → Software*). |
+| Newer than 3.29.1 | Not yet. GhostGuard stays off on a version it does not know; a new version is added after it has been checked. |
+
+The installer prints the build number as `tablet firmware build`.
+
 ## Install
 
 | You need | Details |
 |---|---|
 | Tablet | reMarkable Paper Pro (the 11.8" colour model; not the Paper Pro Move, not a reMarkable 2) |
-| Software | exactly **3.29.1**; look at *Settings → General → Software* |
+| Software | **3.29.1** (tested) or 3.29.0; look at *Settings → General → Software* |
 | Developer mode | on (step 1; skip it if you already have it) |
 | Computer | macOS or Linux; on Windows use WSL |
 | Cable | the tablet's USB-C cable |
@@ -128,15 +140,20 @@ refuses anything else.
 
 ### Which software version do I need?
 
-Exactly **3.29.1** (build `20261028104944`). GhostGuard reads private data structures of the tablet's main
-program, and their positions change with every version, so it is pinned to one build.
-[docs/BUILDING.md](docs/BUILDING.md) lists what a port to another version has to change.
+Software **3.29**: 3.29.1 (tested) or 3.29.0. GhostGuard reads private data structures of the tablet's main
+program, and their positions can change with every version, so a version is only accepted after it has been
+checked. 3.29.0 passed: its display code is identical to that of 3.29.1. 3.28 did not: its display code is
+different, so it would need a port of its own (older versions were not looked at); updating the tablet is the
+simpler way.
+[docs/BUILDING.md](docs/BUILDING.md#checking-another-build) shows how a version is checked and what a port has
+to change.
 
 ### What happens when the tablet updates its software?
 
-GhostGuard notices at the next start that the version is not the tested one and does not start; the tablet simply
-behaves like stock. To keep GhostGuard, turn off automatic updates (*Settings → General → Software*) and check
-this page for a newer build before you update.
+GhostGuard notices at the next start that the software is not the one it was installed for and does not start;
+the tablet simply behaves like stock. After an update from 3.29.0 to 3.29.1, run the installer again: it then
+installs the library for 3.29.1. For anything newer than 3.29.1, turn off automatic updates
+(*Settings → General → Software*) and check this page for a newer build before you update.
 
 ### Do I need developer mode, and does it erase my tablet?
 
@@ -248,9 +265,11 @@ Please read these before you install.
 
 - **Developer mode.** Factory reset when you turn it on; SSH access to the tablet with a root password; warranty
   and security consequences as described by reMarkable. Leaving developer mode needs reMarkable's recovery tool.
-- **One firmware only.** GhostGuard reads private data structures of the tablet's main program (`xochitl`). It
-  checks the exact build before doing anything and stays passive on any other. After a software update it switches
-  itself off; turn off automatic updates if you want to keep it.
+- **Known firmware builds only.** GhostGuard reads private data structures of the tablet's main program
+  (`xochitl`). It checks the exact build before doing anything and stays passive on any build it was not installed
+  for. It has been run on a real tablet with software 3.29.1 only. For 3.29.0 it relies on the comparison of the
+  two programs (identical display code), not on a test; the kernel of 3.29.0 is another build than that of
+  3.29.1. After a software update it switches itself off; turn off automatic updates if you want to keep it.
 - **It changes waveform data in memory.** The white tail is written into the running program's copy of one
   waveform table (the one for 22–28 °C). Nothing on disk and nothing in the display's own storage is modified, and a
   restart brings the original back. But the tail adds drive to the panel on every full refresh, and **we have not
@@ -297,12 +316,14 @@ Run these on the computer, in the project folder, with the tablet connected by U
 
 ```
 install.sh, uninstall.sh, status.sh, settings.sh   the four commands for users
-prebuilt/ggsense.so     the engine, built from ggsense/ggsense-1.8.32.c (aarch64)
+prebuilt/ggsense.so     the engine for software 3.29.1, built from ggsense/ggsense-1.8.32.c (aarch64)
+prebuilt/ggsense-3.29.0.so   the same source built for software 3.29.0 (only the expected build-id differs)
 ggsense/                engine source, unit tests, fuzz test, build script
 ghostguard/             the small QML part that runs inside the tablet's interface
 deploy/                 the boot-time installer, guards, rescue and rollback scripts
 tools/                  helper programs (input watcher, table tool, command sender) and the start-up extras:
-                        bwturn.js, ggrefresh.js, viewchange.js, settingskb.js (plus the clock and keyboard watcher)
+                        bwturn.js, ggrefresh.js, viewchange.js, settingskb.js (plus the clock and keyboard watcher);
+                        fwcmp.py compares the places GhostGuard hooks in two builds of the tablet's main program
 docs/                   the documents above; docs/media/ holds the pictures of this page
 ```
 
@@ -318,12 +339,14 @@ No reMarkable software, waveform file or other proprietary data is included.
 | Computer | macOS (the scripts are plain bash and should run on Linux and WSL; not tested there) |
 | Panel temperature | 25–27.5 °C |
 
-The Paper Pro Move and the reMarkable 1 and 2 are **not** supported.
+Software 3.29.0 is accepted by the installer but has not been run on a tablet
+(see [Supported software](#supported-software)). The Paper Pro Move and the reMarkable 1 and 2 are **not** supported.
 
 ## Helping
 
 - If it works or does not work on your tablet, please open an issue and say which software version you have,
   what kind of document you read, and what you see. Reports from a second device are worth a lot.
+- If you run it on software 3.29.0, please tell us how it goes: that version has not been run on a tablet by us.
 - If you port it to another software version, [docs/BUILDING.md](docs/BUILDING.md) lists what is version-specific.
 - If it cleaned up your screen, a star helps other Paper Pro owners find it.
 

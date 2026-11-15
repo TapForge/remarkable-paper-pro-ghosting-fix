@@ -24,7 +24,7 @@ The effect is strongest on colour PDFs (for example a designed textbook with col
 | Number of devices tested | **One** |
 | Panel temperature during most tests | about 25 to 27.5 C |
 
-Everything below was measured on this one device. We do not know how other units, other firmware versions, or other temperatures behave. The library checks the firmware build and does nothing on any other build (see section 8).
+Everything below was measured on this one device. We do not know how other units, other firmware versions, or other temperatures behave. The library checks the firmware build and does nothing on any other build (see section 8). A second library is built for firmware 3.29.0, whose display code is identical to that of 3.29.1 ([BUILDING.md](BUILDING.md#checking-another-build)); nothing was measured on 3.29.0.
 
 ## 3. Terms used in this document
 

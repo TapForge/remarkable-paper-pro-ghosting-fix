@@ -7,8 +7,9 @@ most of it waiting.
 **Before you start, check these three things.**
 
 1. Your tablet is a **reMarkable Paper Pro** (the 11.8" colour model; not the Paper Pro Move, not a reMarkable 2).
-2. Its software version is **3.29.1**. Look at *Settings → General → Software* (the version is shown there).
-   If it is another version, stop here: the installer will refuse. See
+2. Its software version is **3.29.1** (or 3.29.0). Look at *Settings → General → Software* (the version is
+   shown there). On 3.29.0, update the tablet to 3.29.1 first if you can: 3.29.0 is accepted, but GhostGuard has
+   not been run on a tablet with it. If it is any other version, stop here: the installer will refuse. See
    [TROUBLESHOOTING.md](TROUBLESHOOTING.md#other-firmware-versions).
 3. You have read the [Risks](../README.md#risks) section of the README and accept them.
 
@@ -107,7 +108,7 @@ The installer works through six parts. It prints what it is about to do and asks
 |---|---|---|
 | 1/6 Tools | Checks that the computer has what is needed | Nothing |
 | 2/6 Finding the tablet | Sets up a password-free login so the later steps can run | Answer `y`. When it says `root@10.11.99.1's password:` type the password from step 2 and press `Enter`. **Nothing appears while you type; that is normal.** If it first asks `Are you sure you want to continue connecting`, it will already have answered for you. |
-| 3/6 Firmware check | Compares the tablet's software with the tested one | Nothing. If it stops here, your version is not supported. |
+| 3/6 Firmware check | Compares the tablet's software with the versions it knows | Nothing on 3.29.1. On 3.29.0 it tells you that this version was checked but not run on a tablet, and asks whether to go on. If it stops here, your version is not supported. |
 | 4/6 XOVI | Downloads the extension loader from its official page, checks it, puts it on the tablet and lets it prepare itself | Answer `y`. The tablet's screen stops for a few minutes. **When the terminal asks you to press Enter, do so.** If the tablet asks for your passcode, enter it on the tablet. |
 | 5/6 Installing GhostGuard | Copies GhostGuard to the tablet and arms it for the next start | Answer `y` |
 | 6/6 Restart | Restarts the tablet | Close any open document on the tablet, then answer `y` |
@@ -197,10 +198,11 @@ downloaded the ZIP file instead of using `git`, download it again and run `bash 
 
 ## After a software update
 
-When the tablet installs a new software version, GhostGuard notices at the next start that the version is not the
-tested one and does not start; the tablet simply behaves like stock. To keep GhostGuard, turn off automatic
-updates on the tablet (*Settings → General → Software*). Check this project's page for a build for the newer
-version before you update.
+When the tablet installs a new software version, GhostGuard notices at the next start that the software is not the
+one it was installed for and does not start; the tablet simply behaves like stock. After an update from 3.29.0 to
+3.29.1, run `bash install.sh` again: it then installs the library for 3.29.1. For anything newer than 3.29.1,
+turn off automatic updates on the tablet (*Settings → General → Software*) and check this project's page for a
+build for the newer version before you update.
 
 ## Doing it by hand
 

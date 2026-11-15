@@ -6,6 +6,7 @@
 # Default is a DRY RUN: builds and checks the staging folder here and prints the commands for the tablet; nothing
 # is sent. --go runs them.
 #   bash deploy/persist_install.sh [--go] [--so LIB] [--kbd FILE] [--clock FILE] [--extra FILE]... [--ver TEXT] [--stage DIR]
+#                                  [--os BUILD --xo-md5 MD5]
 #     --so LIB      the ggsense build the boots arm (default ggsense/ggsense184.so). It goes with the staging folder
 #                   as the boot's own pinned copy, /home/root/ghostguard/boot/ggsense.so (the boot drop-in preloads
 #                   that file); its md5 and version string go into the staged scripts. The library a deploy by hand
@@ -16,6 +17,10 @@
 #                   order given (e.g. tools/bwturn.js, tools/ggrefresh.js). An install without it has no extras
 #     --ver TEXT    the library's version string, when it cannot be read from LIB (e.g. "ggsense 1.8.1")
 #     --stage DIR   build the staging folder in DIR/boot (kept) instead of a temporary folder
+#     --os BUILD, --xo-md5 MD5
+#                   the firmware the boots will accept: the content of /etc/version and the md5 of /usr/bin/xochitl.
+#                   Default: the pair written in deploy/boot/autostart.sh (software 3.29.1). install.sh passes the
+#                   pair of the tablet it found; LIB must be the library built for that xochitl (ggsense/build.sh)
 # Needs `ssh remarkable` (key login) for --go. Remove: bash deploy/persist_uninstall.sh
 set -eu
 P=$(cd "$(dirname "$0")/.." && pwd)
@@ -27,6 +32,8 @@ KBD=$P/tools/kbd_overlay.js
 CLOCK=$P/tools/clock12.js
 VER=""
 STAGE_DIR=""
+OS_ARG=""
+XO_ARG=""
 HOST=${GG_HOST:-remarkable}
 REM=/home/root/gg-staging
 SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=10"
@@ -44,7 +51,9 @@ while [ $# -gt 0 ]; do
         --extra) need "$@"; EXTRAS+=("$2"); shift ;;
         --ver) need "$@"; VER=$2; shift ;;
         --stage) need "$@"; STAGE_DIR=$2; shift ;;
-        -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
+        --os) need "$@"; OS_ARG=$2; shift ;;
+        --xo-md5) need "$@"; XO_ARG=$2; shift ;;
+        -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
         *) echo "persist_install: unknown option $1 (see --help)" >&2; exit 2 ;;
     esac
     shift
@@ -73,9 +82,18 @@ LC_ALL=C grep -a -q 'bad quiet/max' "$P/tools/ggtool" || die "tools/ggtool has n
 command -v python3 > /dev/null || die "python3 not found"
 for f in "$P"/deploy/boot/*.sh; do bash -n "$f" || die "syntax error in $f"; done
 sh -n "$P/deploy/gg_autorollback.sh" || die "syntax error in deploy/gg_autorollback.sh"
-OS_TESTED=$(sed -n 's/^OS_TESTED=\${GG_OS_TESTED:-\([0-9]*\)}.*/\1/p' "$P/deploy/boot/autostart.sh")
-XO_MD5=$(sed -n 's/^XO_MD5=\${GG_XO_MD5:-\([0-9a-f]*\)}.*/\1/p' "$P/deploy/boot/autostart.sh")
-[ -n "$OS_TESTED" ] && [ -n "$XO_MD5" ] || die "cannot read OS_TESTED / XO_MD5 from deploy/boot/autostart.sh"
+OS_DEF=$(sed -n 's/^OS_TESTED=\${GG_OS_TESTED:-\([0-9]*\)}.*/\1/p' "$P/deploy/boot/autostart.sh")
+XO_DEF=$(sed -n 's/^XO_MD5=\${GG_XO_MD5:-\([0-9a-f]*\)}.*/\1/p' "$P/deploy/boot/autostart.sh")
+[ -n "$OS_DEF" ] && [ -n "$XO_DEF" ] || die "cannot read OS_TESTED / XO_MD5 from deploy/boot/autostart.sh"
+# the firmware the boots will accept: the pair in autostart.sh, or the one given with --os and --xo-md5
+if [ -n "$OS_ARG" ] || [ -n "$XO_ARG" ]; then
+    [ -n "$OS_ARG" ] && [ -n "$XO_ARG" ] || die "--os and --xo-md5 go together"
+fi
+OS_TESTED=${OS_ARG:-$OS_DEF}
+XO_MD5=${XO_ARG:-$XO_DEF}
+case "$OS_TESTED" in *[!0-9]*|'') die "odd firmware build '$OS_TESTED' (--os takes the content of /etc/version)" ;; esac
+case "$XO_MD5" in *[!0-9a-f]*) die "odd xochitl md5 '$XO_MD5'" ;; esac
+[ ${#XO_MD5} = 32 ] || die "odd xochitl md5 '$XO_MD5'"
 echo "library $LIB: $VER, md5 $SO_MD5"
 echo "tested firmware $OS_TESTED, xochitl md5 $XO_MD5"
 
@@ -94,7 +112,9 @@ SB=$ST/boot
 echo "== staging in $SB"
 mkdir -p "$SB/units" "$SB/dropins" "$SB/payload"
 for f in autostart.sh ggapply.sh rescue.sh gg.sh install.sh uninstall.sh; do
-    sed -e "s/__SO_MD5__/$SO_MD5/g" -e "s/__GG_VER__/$VER/g" "$P/deploy/boot/$f" > "$SB/$f"
+    sed -e "s/__SO_MD5__/$SO_MD5/g" -e "s/__GG_VER__/$VER/g" \
+        -e "s/^OS_TESTED=\${GG_OS_TESTED:-$OS_DEF}/OS_TESTED=\${GG_OS_TESTED:-$OS_TESTED}/" \
+        -e "s/^XO_MD5=\${GG_XO_MD5:-$XO_DEF}/XO_MD5=\${GG_XO_MD5:-$XO_MD5}/" "$P/deploy/boot/$f" > "$SB/$f"
 done
 cp "$P"/deploy/boot/units/ghostguard-autostart.service "$P"/deploy/boot/units/ghostguard-autostart.timer \
    "$P"/deploy/boot/units/ghostguard-rescue.service "$SB/units/"
@@ -108,6 +128,8 @@ chmod 0644 "$SB"/units/* "$SB"/dropins/* "$SB"/payload/*
 if grep -r -l -E '__SO_MD5__|__GG_VER__' "$SB" > /dev/null; then die "placeholders left in $SB"; fi
 grep -q "^SO_MD5=\${GG_SO_MD5:-$SO_MD5}" "$SB/autostart.sh" || die "SO_MD5 not filled in"
 grep -q "^VER=\${GG_VER:-$VER}" "$SB/ggapply.sh" || die "VER not filled in"
+grep -q "^OS_TESTED=\${GG_OS_TESTED:-$OS_TESTED}" "$SB/autostart.sh" || die "OS_TESTED not filled in"
+grep -q "^XO_MD5=\${GG_XO_MD5:-$XO_MD5}" "$SB/autostart.sh" || die "XO_MD5 not filled in"
 for f in "$SB"/*.sh; do bash -n "$f" || die "syntax error in staged $f"; done
 if grep -q ggsense "$SB/dropins/zz-ghostguard.conf"; then die "zz-ghostguard.conf names the library (deploy scripts would refuse the template)"; fi
 ( cd "$SB" && find . -type f ! -name MANIFEST.md5 | sed 's|^\./||' | LC_ALL=C sort | while read -r f; do

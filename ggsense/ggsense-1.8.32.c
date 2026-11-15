@@ -2425,8 +2425,19 @@ static int cds_histo(const uint8_t *from, const uint8_t *to, int n, uint32_t *hi
 }
 
 #ifdef __linux__
+// The xochitl this library is built for, by build-id. Default: software 3.29.1.0. With -DGG_XO_3290 the same
+// source is built for 3.29.0.153 (build-id c2d96853...e7beba): its display code is the same, at the same
+// addresses, so every address and signature below holds for it too (docs/BUILDING.md, "Checking another build").
+// The two libraries differ in these 20 bytes and in the name in the log line, nothing else.
+#ifdef GG_XO_3290
+#define XO_NAME "3.29.0"
+static const uint8_t xo_buildid[20] = {0xc2, 0xd9, 0x68, 0x53, 0xe6, 0xe7, 0x20, 0xbe, 0x00, 0xf0,
+                                       0xfd, 0x71, 0x14, 0x3d, 0x22, 0x14, 0x39, 0xe7, 0xbe, 0xba};
+#else
+#define XO_NAME "3.29.1"
 static const uint8_t xo_buildid[20] = {0x7f, 0x2e, 0x34, 0xd3, 0x8b, 0xaf, 0x3a, 0xce, 0x11, 0x17,
                                        0xa5, 0xac, 0x3a, 0x9c, 0x18, 0x31, 0x3d, 0x66, 0x0a, 0x13};
+#endif
 static const uint32_t xo_impl_sig[8] = {0xd503233f, 0xa9a57bfd, 0x910003fd, 0xa90153f3,
                                         0xaa0003f4, 0xa90363f7, 0xaa0203f8, 0xa9046bf9};
 
@@ -2456,7 +2467,7 @@ static void xo_fail(const char *why) {
     glog("regional clean disabled: %s", why);
 }
 
-// One-time check of the running xochitl. 1 = verified, -1 = not the 3.29.1 binary we know: the sensor
+// One-time check of the running xochitl. 1 = verified, -1 = not the binary this library was built for: the sensor
 // then stays passive (no pixels are read, no clean is ever issued).
 static int xo_verify(void) {
     if (xo_state) return xo_state;
@@ -2483,7 +2494,7 @@ static int xo_verify(void) {
     xo_base = base;
     xo_state = 1;
     snprintf(xo_why, sizeof xo_why, "verified");
-    glog("xochitl 3.29.1 verified (base %p)", (void *)base);
+    glog("xochitl " XO_NAME " verified (base %p)", (void *)base);
     return 1;
 }
 

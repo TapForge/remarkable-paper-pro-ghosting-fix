@@ -1,6 +1,7 @@
 # Building GhostGuard from source, and porting it
 
-You do not need this to use GhostGuard: a built engine is in `prebuilt/ggsense.so`.
+You do not need this to use GhostGuard: built engines are in `prebuilt/` (`ggsense.so` for software 3.29.1,
+`ggsense-3.29.0.so` for software 3.29.0).
 
 ## Build
 
@@ -18,7 +19,10 @@ The last lines should read `ALL OK (0 failures)` and `invariant violations: 0`.
 bash ggsense/build.sh
 ```
 
-runs the same tests and then builds `prebuilt/ggsense.so` and `tools/ggtool` for the tablet (aarch64, glibc 2.31).
+runs the same tests and then builds `prebuilt/ggsense.so`, `prebuilt/ggsense-3.29.0.so` and `tools/ggtool` for the
+tablet (aarch64, glibc 2.31). The two libraries are one source: `-DGG_XO_3290` swaps the build-id of `xochitl` the
+library expects, and nothing else. The build is reproducible: with the same zig version (0.17.1 for the files
+in `prebuilt/`) it gives the same bytes.
 `tools/tabset.c` (a test tool that writes cells of a live waveform table through `/proc/PID/mem`) is built the same
 way when you need it; the installer does not use it.
 
@@ -30,7 +34,9 @@ Notes:
   proprietary or personal and are not in this repository; without them these tests print
   `(no TESTDATA: ...)` and are skipped.
 
-Install your own build with `bash install.sh` (it takes `prebuilt/ggsense.so`), or directly:
+Install your own build with `bash install.sh` (it takes the library for the tablet's software from `prebuilt/`),
+or directly (this line is for software 3.29.1; for another known build add `--os` and `--xo-md5`, see
+`bash deploy/persist_install.sh --help`):
 
 ```bash
 bash deploy/persist_install.sh --go --so prebuilt/ggsense.so --clock tools/clock14f.js --extra tools/bwturn.js --extra tools/ggrefresh.js --extra tools/viewchange.js --extra tools/settingskb.js
@@ -59,9 +65,10 @@ refused at the next boot. Always go through the installer.
 Porting to another software version means re-finding all of these. None of it is guesswork-safe: a wrong offset
 reads or writes the wrong memory in the tablet's main program.
 
-1. **The build pins.** `OS_TESTED` and `XO_MD5` at the top of `deploy/boot/autostart.sh` and in `install.sh`
-   (`/etc/version` and the md5 of `/usr/bin/xochitl`), and the build ID the engine checks before it reads anything
-   (`xo_buildid` in the engine source).
+1. **The build pins.** The list `BUILDS` in `install.sh` (`/etc/version`, the md5 of `/usr/bin/xochitl` and the
+   library for that build), `OS_TESTED` and `XO_MD5` at the top of `deploy/boot/autostart.sh` (the installer writes
+   the pair of the tablet it found into the copy it sends), and the build ID the engine checks before it reads
+   anything (`xo_buildid` in the engine source).
 2. **Addresses and layouts inside `xochitl`.** The engine locates the framebuffer object, its image, the
    display-update call and the waveform table objects by offsets that were found by reading this one build. They
    are constants near the top of the engine source, each with a comment on how it was found and which check
@@ -76,6 +83,54 @@ reads or writes the wrong memory in the tablet's main program.
 
 A port should start in observe-only mode: every engine feature can be switched off with runtime keys, and the unit
 and fuzz tests run without a tablet.
+
+## Checking another build
+
+Before any of that, find out whether the new build needs a port at all. `tools/fwcmp.py` compares the places
+ggsense hooks in two builds of `xochitl` without running them:
+
+```bash
+python3 tools/fwcmp.py xochitl-3.29.1.0 xochitl-OTHER
+```
+
+(Python 3 with `numpy` and `pyelftools`; get a tablet's program with `scp remarkable:/usr/bin/xochitl xochitl-OTHER`.)
+It takes the first instructions of 13 functions of the reference build as signatures, with the fields that depend
+on where code and data sit masked out, finds them in the other build and compares each function instruction by
+instruction: the six functions ggsense calls or checks (`swapBuffers_impl`, `sendUpdate`, `ghostControl`, enqueue,
+commit, sync) and seven that define the layouts it reads (the `swapBuffers` wrapper, the clipper, the dependency
+builder, the frame generator, the kernel dispatcher, the generic kernel, the pixel converter). It re-derives the
+five data addresses from the code that references them, and the vtable from the relocation that points to
+`swapBuffers_impl`.
+
+What it found for the builds next to 3.29.1.0:
+
+| Build | Functions | Data addresses | Result |
+|---|---|---|---|
+| 3.29.0.153 (`/etc/version` 20261009073202, build-id `c2d96853…e7beba`) | 13 of 13 identical, at the same addresses | 5 of 5 at the same addresses | the constants hold; only the build-id differs |
+| 3.28.0.172 (`/etc/version` 20260827113527, build-id `aae326b4…cdbb2a`) | 0 of 13 found identical | 0 of 5 re-found | different display code: a port |
+
+More on 3.29.0.153 against 3.29.1.0, from comparing the two programs and the two root file systems:
+
+- Of 3,407,477 instructions, 3 differ in meaning. All three are the database version of the handwriting search
+  index (`sqlite_index_writer.cpp`). About 3,700 more carry only the address of read-only data that moved by
+  16 bytes.
+- The interface resources in the program are identical: all 799 compressed ones and every plain-text block of
+  200 bytes or more that looks like QML, JavaScript, JSON or SVG (486 of them). So the QML that the QML patch and
+  the start-up extras hook is the same.
+- Qt, the e-paper plug-ins (`libepaper.so`, `libqsgepaper.so`), `xochitl.service` and every waveform file present
+  in both are identical.
+- Different: the kernel with its modules, the boot loader, the trusted firmware, `xochitl` as described, its PDF
+  renderer helper, the sync and telemetry programs, four network libraries, the certificate list, and version and
+  licence files. 3.29.1.0 also adds five waveform files for other panel batches.
+
+That is why 3.29.0 is accepted with the same constants: the library for it is the same source with the other
+build-id (`-DGG_XO_3290`). It is also why 3.29.0 is marked "not run on a real tablet": the comparison says the
+code ggsense reads and calls is the same; it says nothing about the kernel that differs.
+
+To add a build that passes with every function identical and no shift: a `-D` block with its build-id next to
+`GG_XO_3290` in the engine source, a line in `ggsense/build.sh`, a line in `BUILDS` in `install.sh`. With
+identical code at shifted addresses, the constants and the signature arrays have to be replaced too. Anything
+else is a port as described above.
 
 ## Development method, for the curious
 
