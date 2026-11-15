@@ -47,8 +47,9 @@ It is free, open source (MIT), and one command removes it again.
 - It was developed and tested on **one tablet**, judged by **one person's eyes**, installed from **one Mac**.
   Your panel may behave differently.
 - It needs **developer mode**. Turning developer mode on **erases the tablet** (factory reset; your notes come back
-  from the cloud if you sync first), shows a warning at every start, and reMarkable says damage caused in
-  developer mode is not covered by the warranty.
+  from the cloud if you sync first) and shows a warning at every start. reMarkable's warranty does not cover
+  faults that can be traced to your use of developer mode, which includes running this add-on; see reMarkable's
+  [Limited Warranty Policy](https://support.remarkable.com/s/article/Limited-Warranty-Policy).
 - It is not made or endorsed by reMarkable AS. You use it at your own risk. See [Risks](#risks).
 
 ## Supported software
